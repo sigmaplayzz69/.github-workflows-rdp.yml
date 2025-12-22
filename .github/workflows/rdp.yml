@@ -1,4 +1,4 @@
-name: Windows RDP Fixed v3
+name: Windows RDP Fixed v4
 
 on:
   workflow_dispatch:
@@ -9,13 +9,13 @@ jobs:
     timeout-minutes: 360
 
     steps:
-    - name: Enable RDP (Safe)
+    - name: Enable RDP (Safe + No Fail)
       run: |
         reg add "HKLM\System\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
         netsh advfirewall firewall set rule group="remote desktop" new enable=yes
 
-        net user sourab Sourab@12345 /add
-        net localgroup administrators sourab || echo "Already admin, skipping"
+        net user sourab "Sourab@2025#Win" /add || echo "User already exists"
+        net localgroup administrators sourab /add || echo "Already admin"
 
     - name: Download Ngrok
       run: |
@@ -26,14 +26,14 @@ jobs:
       run: |
         .\ngrok\ngrok.exe config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
         Start-Process .\ngrok\ngrok.exe "tcp 3389"
-        Start-Sleep -Seconds 10
+        Start-Sleep -Seconds 15
 
     - name: Show RDP Info
       run: |
         echo "=============================="
         echo "RDP LOGIN DETAILS"
         echo "Username: sourab"
-        echo "Password: Sourab@12345"
+        echo "Password: Sourab@2025#Win"
         echo "Check ngrok logs for TCP address"
         echo "=============================="
 
