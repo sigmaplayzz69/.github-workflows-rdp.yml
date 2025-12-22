@@ -1,4 +1,4 @@
-name: Windows RDP Fixed
+name: Windows RDP Fixed v3
 
 on:
   workflow_dispatch:
@@ -9,24 +9,34 @@ jobs:
     timeout-minutes: 360
 
     steps:
-    - name: Enable RDP
+    - name: Enable RDP (Safe)
       run: |
         reg add "HKLM\System\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
         netsh advfirewall firewall set rule group="remote desktop" new enable=yes
-        net user runneradmin Sourab@12345
-        net localgroup administrators runneradmin /add
+
+        net user sourab Sourab@12345 /add
+        net localgroup administrators sourab || echo "Already admin, skipping"
 
     - name: Download Ngrok
       run: |
         Invoke-WebRequest https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip -OutFile ngrok.zip
         Expand-Archive ngrok.zip
 
-    - name: Connect Ngrok
+    - name: Start Ngrok
       run: |
         .\ngrok\ngrok.exe config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
         Start-Process .\ngrok\ngrok.exe "tcp 3389"
+        Start-Sleep -Seconds 10
+
+    - name: Show RDP Info
+      run: |
+        echo "=============================="
+        echo "RDP LOGIN DETAILS"
+        echo "Username: sourab"
+        echo "Password: Sourab@12345"
+        echo "Check ngrok logs for TCP address"
+        echo "=============================="
 
     - name: Keep Alive
       run: |
-        echo "RDP is running..."
-        ping -t 127.0.0.1
+        while ($true) { Start-Sleep -Seconds 60 }
