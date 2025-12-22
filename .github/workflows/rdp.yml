@@ -1,0 +1,32 @@
+name: Windows RDP Fixed
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 360
+
+    steps:
+    - name: Enable RDP
+      run: |
+        reg add "HKLM\System\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+        netsh advfirewall firewall set rule group="remote desktop" new enable=yes
+        net user runneradmin Sourab@12345
+        net localgroup administrators runneradmin /add
+
+    - name: Download Ngrok
+      run: |
+        Invoke-WebRequest https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip -OutFile ngrok.zip
+        Expand-Archive ngrok.zip
+
+    - name: Connect Ngrok
+      run: |
+        .\ngrok\ngrok.exe config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+        Start-Process .\ngrok\ngrok.exe "tcp 3389"
+
+    - name: Keep Alive
+      run: |
+        echo "RDP is running..."
+        ping -t 127.0.0.1
