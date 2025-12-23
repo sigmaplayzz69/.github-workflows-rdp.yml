@@ -20,9 +20,14 @@ jobs:
         Invoke-WebRequest https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe -OutFile tailscale.exe
         Start-Process tailscale.exe -ArgumentList "/quiet" -Wait
 
-    - name: Connect Tailscale
+    - name: Connect Tailscale (Stable)
       run: |
-        & "C:\Program Files\Tailscale\tailscale.exe" up --authkey ${{ secrets.TS_AUTHKEY }} --hostname github-rdp
+       & "C:\Program Files\Tailscale\tailscale.exe" up `
+        --authkey ${{ secrets.TS_AUTHKEY }} `
+        --hostname github-rdp `
+        --accept-routes `
+        --accept-dns=false
+
 
     - name: Show RDP Info
       run: |
